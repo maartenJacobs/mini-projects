@@ -1,1 +1,4 @@
 .host/
+*.o
+*.hi
+cut
