@@ -1,4 +1,3 @@
--- TODO: limited import reduces binary size?
 import Data.List.Split
 
 {-
