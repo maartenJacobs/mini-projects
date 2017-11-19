@@ -8,6 +8,17 @@ import qualified Options.Applicative as Options
 {-
 cut.hs imitates the UNIX cut tool.
 
+TODO:
+    - Create option parser for delimiter that accepts a Char. Read up on `optparse-applicative`.
+    - Figure out how to list dependencies using `cabal`.
+    - Split out program into modules: core functionality (cut and field exprs) and command (options parser)
+        would be better as modules. Currently there are collisions between the option parser and the
+        field expression parse.
+    - Write tests. Quickcheck seems quite popular.
+    - Test performance against UNIX cut. Expect 100x slowdown. Try not to cry if more than that.
+    - Attempt to parallelise cutting of each line. Test performance again.
+    - (Optional) Add more options.
+ 
 ```
 cut -f|--fields <fields>
     -d|--delimiter <delim=TAB>
