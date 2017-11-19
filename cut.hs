@@ -18,7 +18,7 @@ TODO:
     - Test performance against UNIX cut. Expect 100x slowdown. Try not to cry if more than that.
     - Attempt to parallelise cutting of each line. Test performance again.
     - (Optional) Add more options.
- 
+
 ```
 cut -f|--fields <fields>
     -d|--delimiter <delim=TAB>
