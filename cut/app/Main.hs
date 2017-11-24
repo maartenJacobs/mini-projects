@@ -51,7 +51,7 @@ printCutResult (Right row)                      = putStrLn row
 executeCut :: CutOptions -> IO ()
 executeCut (CutOptions file fields [delim]) =
     do content <- readFile file
-       let rows' = map (Cut.cut delim (Parser.translateFieldExpr fields)) $ lines content
+       let rows' = map (Cut.cutFields delim (Parser.translateFieldExpr fields)) $ lines content
        mapM_ printCutResult rows'
 executeCut _ = putStrLn "No options provided!!!"
 

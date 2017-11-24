@@ -1,5 +1,5 @@
 module Cut.Core
-    ( cut
+    ( cutFields
     , CutError(..)
     , Range
     , Row)
@@ -17,8 +17,8 @@ newtype CutError = ContainsNoDelimiter Row
     deriving (Show, Eq)
 
 -- TODO: better way of retrieving fields?
-cut :: Delim -> [Range] -> Row -> Either CutError Row
-cut delim rs row
+cutFields :: Delim -> [Range] -> Row -> Either CutError Row
+cutFields delim rs row
     | length columns == 1 = Left $ ContainsNoDelimiter row
     | otherwise           = Right . intercalate [delim] . concat $ map (extractFields columns) normalisedRanges
     where columns = splitOn [delim] row
