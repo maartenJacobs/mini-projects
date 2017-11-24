@@ -12,6 +12,7 @@ type Delim = Char
 type Row = String
 type Column = String
 type Range = [Int]
+type Field = String
 
 newtype CutError = ContainsNoDelimiter Row
     deriving (Show, Eq)
@@ -19,12 +20,16 @@ newtype CutError = ContainsNoDelimiter Row
 -- TODO: better way of retrieving fields?
 cutFields :: Delim -> [Range] -> Row -> Either CutError Row
 cutFields delim rs row
-    | length columns == 1 = Left $ ContainsNoDelimiter row
-    | otherwise           = Right . intercalate [delim] . concat $ map (extractFields columns) normalisedRanges
-    where columns = splitOn [delim] row
-          columnCount = length columns
-          normalisedRanges = map (limitRange columnCount . map (subtract 1)) rs
-          extractFields cols range = [cols !! field | field <- range]
+    | delim `elem` row  = Right . joinWithDelim . concat $ map (fieldsFromRange fields) normalisedRanges
+    | otherwise         = Left $ ContainsNoDelimiter row
+    where fields = splitOn [delim] row
+          joinWithDelim = intercalate [delim]
+          normalisedRanges = normaliseRanges rs (length fields)
 
-limitRange :: Int -> Range -> Range
-limitRange max = takeWhile (< max)
+fieldsFromRange :: [Field] -> Range -> [Field]
+fieldsFromRange fs range = [fs !! idx | idx <- range]
+
+normaliseRanges :: [Range] -> Int -> [Range]
+normaliseRanges rs maxLen = map (limitRange maxLen . map zeroIndex) rs
+    where zeroIndex = subtract 1
+          limitRange max = takeWhile (< max)

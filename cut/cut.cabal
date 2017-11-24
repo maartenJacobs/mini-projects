@@ -45,28 +45,45 @@ extra-source-files:  ChangeLog.md
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
+library cut-core
+  -- Modules included in this executable, other than Main.
+  exposed-modules:  Cut.Core
+                  , Cut.Parser  
+                  
+  build-depends:       base >=4.10 && <4.11
+                     , parsec == 3.1.11
+                     , split == 0.2.3.2
+
+  default-language: Haskell2010
+
+  hs-source-dirs:   src
 
 executable cut
   -- .hs or .lhs file containing the Main module.
   main-is:             Main.hs
   
-  -- Modules included in this executable, other than Main.
-  other-modules:       Cut.Core,
-                       Cut.Parser
-  
-  -- LANGUAGE extensions used by modules in this package.
-  -- other-extensions:    
-  
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.10 && <4.11,
-                       parsec == 3.1.11,
-                       optparse-applicative == 0.14.0.0,
-                       split == 0.2.3.2
+  build-depends:       base >=4.10 && <4.11
+                     , optparse-applicative == 0.14.0.0
+                     , cut-core
   
   -- Directories containing source files.
-  hs-source-dirs:      src,
-                       app
+  hs-source-dirs:      app
   
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
+Test-Suite core
+  type:             detailed-0.9
+
+  test-module:      Cut.Tests
+
+  build-depends:    base
+                  , Cabal >= 1.10
+                  , QuickCheck == 2.10.1
+                  , cabal-test-quickcheck == 0.1.8.1
+                  , cut-core
+
+  default-language: Haskell2010
+
+  hs-source-dirs:   tests
