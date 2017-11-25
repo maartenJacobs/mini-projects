@@ -6,7 +6,7 @@ module Cut.Core
 where
 
 import Data.List.Split (splitOn)
-import Data.List (intercalate)
+import Data.List (intercalate, sort)
 
 type Delim = Char
 type Row = String
@@ -20,16 +20,23 @@ newtype CutError = ContainsNoDelimiter Row
 -- TODO: better way of retrieving fields?
 cutFields :: Delim -> [Range] -> Row -> Either CutError Row
 cutFields delim rs row
-    | delim `elem` row  = Right . joinWithDelim . concat $ map (fieldsFromRange fields) normalisedRanges
+    | delim `elem` row  = Right . joinWithDelim $ fieldsFromRange fields normalisedRange
     | otherwise         = Left $ ContainsNoDelimiter row
     where fields = splitOn [delim] row
           joinWithDelim = intercalate [delim]
-          normalisedRanges = normaliseRanges rs (length fields)
+          normalisedRange = normaliseRanges rs (length fields)
 
 fieldsFromRange :: [Field] -> Range -> [Field]
 fieldsFromRange fs range = [fs !! idx | idx <- range]
 
-normaliseRanges :: [Range] -> Int -> [Range]
-normaliseRanges rs maxLen = map (limitRange maxLen . map zeroIndex) rs
+normaliseRanges :: [Range] -> Int -> Range
+normaliseRanges rs maxLen = uniq . sort . concat $ map (limitRange maxLen . map zeroIndex) rs
     where zeroIndex = subtract 1
           limitRange max = takeWhile (< max)
+
+uniq :: Range -> Range
+uniq []     = []
+uniq (f:fs) = f : uniq' fs f
+    where uniq' [] _ = []
+          uniq' (x:xs) p | x == p    = uniq' xs p
+                         | otherwise = x : uniq' xs x
