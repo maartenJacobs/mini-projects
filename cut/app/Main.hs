@@ -12,12 +12,9 @@ cut.hs imitates the UNIX cut tool.
 
 TODO:
     - Create option parser for delimiter that accepts a Char. Read up on `optparse-applicative`.
-    - Figure out how to list dependencies using `cabal`.
-    - Split out program into modules: core functionality (cut and field exprs) and command (options parser)
-        would be better as modules. Currently there are collisions between the option parser and the
-        field expression parse.
-    - Write tests. Quickcheck seems quite popular.
-    - Test performance against UNIX cut. Expect 100x slowdown. Try not to cry if more than that.
+    - Test performance against UNIX cut. Expect 100x slowdown.
+        `yes | ./dist/build/cut/cut -f 1-3 -d, | pv > /dev/null` reports 5.2MiB/second.
+        `yes | cut -f 1-3 -d, | pv > /dev/null` reports 175MiB/second.
     - Attempt to parallelise cutting of each line. Test performance again.
     - (Optional) Add more options.
 
