@@ -26,17 +26,28 @@ cut -f|--fields <fields>
 
 data Input = FileInput FilePath | StdInput
 
+data OutputDelimiter = OutDelim String | UseInDelim
+
 data CutOptions = CutOptions
                         { file          :: Input
                         , fields        :: String
                         , delimiter     :: String
-                        , onlyDelimited :: Bool }
+                        , onlyDelimited :: Bool
+                        , outDelimiter  :: OutputDelimiter }
 
 fileInput :: Options.Parser Input
 fileInput = FileInput <$> Options.argument Options.str (Options.metavar "FILE")
 
 stdInput :: Options.Parser Input
 stdInput = pure StdInput
+
+outputDelimiter :: Options.Parser OutputDelimiter
+outputDelimiter   = OutDelim
+                        <$> Options.strOption
+                            (  Options.long "output-delimiter"
+                            <> Options.metavar "STRING"
+                            <> Options.help "use STRING as the output delimiter. The default is to use the input delimiter")
+                    <|> pure UseInDelim
 
 cutOptions :: Options.Parser CutOptions
 cutOptions = CutOptions
@@ -56,18 +67,24 @@ cutOptions = CutOptions
             (  Options.long "only-delimited"
             <> Options.short 's'
             <> Options.help "do not print lines not containing delimiters")
+        <*> outputDelimiter
 
 printCutResult :: Bool -> Either Cut.CutError Cut.Row -> IO ()
 printCutResult _ (Right row)                              = putStrLn row
 printCutResult False (Left (Cut.ContainsNoDelimiter row)) = putStrLn row
 printCutResult _ _                                        = return ()
 
+getOutputDelimiter :: Char -> OutputDelimiter -> String
+getOutputDelimiter inDelim UseInDelim = [inDelim]
+getOutputDelimiter _ (OutDelim delim) = delim
+
 executeCut :: CutOptions -> IO ()
-executeCut (CutOptions input fields [delim] onlyDelimited) =
+executeCut (CutOptions input fields [delim] onlyDelimited outDelimiter) =
     do (closeOnEnd, handle) <- inputToHandle input
        content <- hGetContents handle
        let ranges = Parser.translateFieldExpr fields
-       let rows' = map (Cut.cutFields delim ranges) $ lines content
+       let outDelimiter' = getOutputDelimiter delim outDelimiter
+       let rows' = map (Cut.cutFields delim outDelimiter' ranges) $ lines content
        mapM_ (printCutResult onlyDelimited) rows'
 executeCut _ = putStrLn "No options provided!!!"
 

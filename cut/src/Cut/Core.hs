@@ -18,12 +18,12 @@ newtype CutError = ContainsNoDelimiter Row
     deriving (Show, Eq)
 
 -- TODO: better way of retrieving fields?
-cutFields :: Delim -> [Range] -> Row -> Either CutError Row
-cutFields delim rs row
-    | delim `elem` row  = Right . joinWithDelim $ fieldsFromRange fields normalisedRange
-    | otherwise         = Left $ ContainsNoDelimiter row
-    where fields = splitOn [delim] row
-          joinWithDelim = intercalate [delim]
+cutFields :: Delim -> [Delim] -> [Range] -> Row -> Either CutError Row
+cutFields inpDelim outDelim rs row
+    | inpDelim `elem` row = Right . joinWithDelim $ fieldsFromRange fields normalisedRange
+    | otherwise           = Left $ ContainsNoDelimiter row
+    where fields = splitOn [inpDelim] row
+          joinWithDelim = intercalate outDelim
           normalisedRange = normaliseRanges rs (length fields)
 
 fieldsFromRange :: [Field] -> Range -> [Field]
