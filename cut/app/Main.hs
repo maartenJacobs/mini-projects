@@ -27,9 +27,10 @@ cut -f|--fields <fields>
 data Input = FileInput FilePath | StdInput
 
 data CutOptions = CutOptions
-                        { file      :: Input
-                        , fields    :: String
-                        , delimiter :: String }
+                        { file          :: Input
+                        , fields        :: String
+                        , delimiter     :: String
+                        , onlyDelimited :: Bool }
 
 fileInput :: Options.Parser Input
 fileInput = FileInput <$> Options.argument Options.str (Options.metavar "FILE")
@@ -51,18 +52,23 @@ cutOptions = CutOptions
             <> Options.metavar "DELIM"
             <> Options.value "\t"
             <> Options.help "use DELIM instead of TAB for field delimiter")
+        <*> Options.switch
+            (  Options.long "only-delimited"
+            <> Options.short 's'
+            <> Options.help "do not print lines not containing delimiters")
 
-printCutResult :: Either Cut.CutError Cut.Row -> IO ()
-printCutResult (Left (Cut.ContainsNoDelimiter row)) = putStrLn row
-printCutResult (Right row)                      = putStrLn row
+printCutResult :: Bool -> Either Cut.CutError Cut.Row -> IO ()
+printCutResult _ (Right row)                              = putStrLn row
+printCutResult False (Left (Cut.ContainsNoDelimiter row)) = putStrLn row
+printCutResult _ _                                        = return ()
 
 executeCut :: CutOptions -> IO ()
-executeCut (CutOptions input fields [delim]) =
+executeCut (CutOptions input fields [delim] onlyDelimited) =
     do (closeOnEnd, handle) <- inputToHandle input
        content <- hGetContents handle
        let ranges = Parser.translateFieldExpr fields
        let rows' = map (Cut.cutFields delim ranges) $ lines content
-       mapM_ printCutResult rows'
+       mapM_ (printCutResult onlyDelimited) rows'
 executeCut _ = putStrLn "No options provided!!!"
 
 inputToHandle :: Input -> IO (Bool, Handle)
